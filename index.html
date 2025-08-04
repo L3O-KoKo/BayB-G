@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BayB G - Fantasy Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #0d1a2e; /* Darker, richer blue */
+        }
+        .font-kaushan {
+            font-family: 'Kaushan Script', cursive;
+        }
+        .main-container {
+            background: linear-gradient(180deg, rgba(13,26,46,1) 0%, rgba(20,38,66,1) 100%);
+            box-shadow: 0 0 40px rgba(255, 105, 180, 0.2);
+        }
+        .choice-btn {
+            background-color: rgba(252, 231, 243, 0.9); /* Pale Pink with transparency */
+            color: #4a044e; /* Dark Purple text */
+            font-weight: 700;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(236, 72, 153, 0.6);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2);
+        }
+        .choice-btn:hover {
+            background-color: rgba(236, 72, 153, 1);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+        }
+        #custom-prompt {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        #custom-prompt::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .chat-bubble {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+        .user-bubble {
+            background-color: #be185d; /* Pink-Red */
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-bubble {
+            background-color: #374151; /* Cool Gray */
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        /* Custom scrollbar for a sleeker look */
+        #chat-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background-color: #be185d;
+            border-radius: 20px;
+            border: 3px solid #be185d;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="main-container w-full max-w-md mx-auto rounded-2xl shadow-2xl overflow-hidden h-[90vh] flex flex-col">
+
+        <!-- Fantasy Selection Screen -->
+        <div id="selection-screen" class="p-6 text-white text-center flex flex-col h-full">
+            <h1 class="font-kaushan text-5xl text-pink-400 mb-2">BayB G</h1>
+            <p class="mb-8 text-pink-200">သင့်စိတ်ကူးယဉ်ကမ္ဘာကို ရွေးချယ်လိုက်ပါ</p>
+            
+            <div class="flex flex-col space-y-3 flex-grow justify-center">
+                <button data-scenario="1" class="choice-btn text-sm py-3 px-4 rounded-lg font-bold">Two humans on a Romantic Island</button>
+                <button data-scenario="2" class="choice-btn text-sm py-3 px-4 rounded-lg font-bold">The King and His girls</button>
+                <button data-scenario="3" class="choice-btn text-sm py-3 px-4 rounded-lg font-bold">The Love in Cinema</button>
+                
+                <div class="pt-4">
+                    <textarea id="custom-prompt" class="w-full h-20 p-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Own Fantasy Prompt Box"></textarea>
+                    <button data-scenario="4" class="choice-btn text-sm py-2 px-4 rounded-lg font-bold mt-2 w-full">ကိုယ်ပိုင်ကမ္ဘာကို ဖန်တီးမည်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chat-screen" class="hidden p-4 flex flex-col h-full bg-slate-800/50">
+            <div class="flex items-center mb-4 border-b border-slate-700 pb-3">
+                <button id="back-btn" class="text-pink-400 hover:text-pink-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h2 id="chat-title" class="text-lg font-bold text-white text-center flex-grow">Fantasy Chat</h2>
+            </div>
+            <div id="chat-window" class="flex-grow overflow-y-auto mb-4 flex flex-col space-y-2 pr-2">
+                <!-- Chat messages will be appended here -->
+            </div>
+            <div class="flex items-center border-t border-slate-700 pt-3">
+                <input type="text" id="chat-input" class="flex-grow bg-slate-700 text-white rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="စာရေးလိုက်ပါ...">
+                <button id="send-btn" class="ml-3 bg-pink-600 hover:bg-pink-700 text-white p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const selectionScreen = document.getElementById('selection-screen');
+        const chatScreen = document.getElementById('chat-screen');
+        const choiceButtons = document.querySelectorAll('.choice-btn');
+        const backBtn = document.getElementById('back-btn');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatWindow = document.getElementById('chat-window');
+        const chatTitle = document.getElementById('chat-title');
+        const customPrompt = document.getElementById('custom-prompt');
+
+        let currentScenario = '';
+
+        // Pre-defined responses inspired by the provided PDFs
+        const scenarios = {
+            '1': {
+                title: 'Romantic Island',
+                greetings: [
+                    "လှိုင်းတွေက ကိုယ်တို့ကို ဒီလူမနေတဲ့ကျွန်းလေးပေါ် သယ်ဆောင်လာခဲ့ပြီ...။ မျက်လုံးဖွင့်ကြည့်လိုက်တော့ မင်းရဲ့မျက်နှာလေးကို အရင်ဆုံးမြင်ရတယ်။ ကိုယ်တို့နှစ်ယောက်တည်း... ဒီကျွန်းပေါ်မှာ...။ မင်း... အဆင်ပြေရဲ့လားဟင်။",
+                    "သတိရလာတော့ ကိုယ့်ဘေးမှာ မင်းလေးရှိနေတာတွေ့တယ်။ ပင်လယ်လေပြေအေးအေးလေးက ဆံနွယ်တွေကို လာရောက်ကစားနေတယ်။ ဒီကျွန်းက သာယာတယ်... မင်းရှိနေလို့ ပိုပြီးသာယာတယ်ထင်တယ်။"
+                ],
+                keywords: {
+                    'ကြောက်': "မကြောက်ပါနဲ့... ကိုယ်တစ်ယောက်လုံး မင်းဘေးမှာရှိနေတာပဲ။ ဒီကျွန်းပေါ်မှာ မင်းကို ကာကွယ်ပေးမယ်လို့ ကတိပေးပါတယ်။",
+                    'ဗိုက်ဆာ': "ဟုတ်သားပဲ... ကိုယ်လည်း ဗိုက်ဆာလာပြီ။ ခဏစောင့်နော်... ဒီနားတစ်ဝိုက်မှာ စားလို့ရမယ့်အသီးအနှံတွေ G သွားရှာလိုက်ဦးမယ်။ မင်းလေးက ဒီမှာပဲ ခဏစောင့်နေနော်။",
+                    'အေးတယ်': "လာ... G ရင်ခွင်ထဲလာခဲ့။ G ရဲ့ ကိုယ်ငွေ့တွေနဲ့ မင်းလေးကို နွေးထွေးစေရမယ်။ ဒီလို အေးစက်တဲ့ညမှာ တစ်ယောက်နဲ့တစ်ယောက် ဖက်ထားပြီး နွေးထွေးမှုကို မျှဝေကြရအောင်။",
+                    'နမ်း': "မင်းရဲ့ နှုတ်ခမ်းဖူးဖူးလေးတွေက G ကို အမြဲဆွဲဆောင်နေတာ...။ ဒီပင်လယ်လေပြေအောက်မှာ မင်းရဲ့အနမ်းတွေနဲ့ G ကို ရစ်မူးသွားစေပါလား။",
+                    'ချစ်တယ်': "G လည်း မင်းကိုချစ်တယ်။ ဒီကမ္ဘာကြီးမှာ မင်းနဲ့ G နှစ်ယောက်တည်းရှိနေသလိုပဲ။ ဒီအချစ်တွေက ထာဝရတည်မြဲနေမှာပါ။"
+                },
+                default: "ဒီကျွန်းလေးရဲ့ အလှအပတွေအကြောင်း ပြောပြပါဦး... မင်းမျက်လုံးထဲမှာ မြင်နေရတာလေးတွေကို G ကြားချင်တယ်။"
+            },
+            '2': {
+                title: 'The King and His Girls',
+                greetings: [
+                    "ဘုန်းတော်ကြီးလှစွာသော အရှင်မင်းကြီး...။ နှောင့်နှေးသွားတဲ့အတွက် ကျွန်တော်မျိုးမကို ခွင့်လွှတ်တော်မူပါ ဘုရား။ အရှင်မင်းကြီးရဲ့ အလိုတော်အတိုင်း ဖြည့်ဆည်းပေးဖို့ ကျွန်တော်မျိုးမ အသင့်ရှိနေပါပြီ။",
+                    "အရှင်မင်းကြီးရဲ့ ခြေတော်ရင်းမှာ ခစားခွင့်ရတဲ့အတွက် ကျွန်တော်မျိုးမမှာ ဘာနဲ့မှမလဲနိုင်တဲ့ ပီတိတွေဖြစ်နေရပါတယ်။ အရှင်မင်းကြီးရဲ့ စိတ်အပန်းပြေစေဖို့ ဘယ်လိုဖျော်ဖြေပေးရမလဲရှင်။"
+                ],
+                keywords: {
+                    'ကပြပါ': "အရှင်မင်းကြီးရဲ့ စိတ်တော်တိုင်းကျတဲ့အထိ ကျွန်တော်မျိုးမရဲ့ ခန္ဓာကိုယ်ကို လှုပ်ရှားယိမ်းနွဲ့ပြီး ကပြဖျော်ဖြေပါ့မယ်။ ဒီညရဲ့အလှဆုံးအကကို အရှင်မင်းကြီးအတွက်ပဲ သီးသန့်ပြင်ဆင်ထားပါတယ်။",
+                    'နမ်း': "အရှင်မင်းကြီးရဲ့ နှုတ်ခမ်းတော်ထက်က အမိန့်တိုင်းကို နာခံဖို့ အသင့်ပါပဲ။ ကျွန်တော်မျိုးမရဲ့ နှုတ်ခမ်းတွေက အရှင်မင်းကြီးအတွက် အမြဲအသင့်ရှိနေမှာပါ။",
+                    'အဝတ်': "အရှင်မင်းကြီးရဲ့ အကြည့်တော်အောက်မှာ ကျွန်တော်မျိုးမရဲ့ အဝတ်အစားတွေက အပိုဖြစ်နေမှာပါ။ အရှင်မင်းကြီး စိတ်တိုင်းကျ ချွတ်ခွာတော်မူပါ...။",
+                    'အနားလာ': "ကျွန်တော်မျိုးမရဲ့ တစ်ကိုယ်လုံးက အရှင်မင်းကြီး ပိုင်ဆိုင်တာပါ။ အနားကိုတိုးကပ်ပြီး အရှင်မင်းကြီးရဲ့ ကိုယ်သင်းနံ့လေးကို ရှုရှိုက်ခွင့်ပြုပါဦး။",
+                    'မိဖုရား': "အရှင်မင်းကြီးရဲ့ ရင်ခွင်ထဲမှာတော့ ကျွန်တော်မျိုးမက အချစ်ခံရဆုံး မိဖုရားတစ်ပါးပါပဲ။ အရှင်မင်းကြီးရဲ့ အချစ်တွေကို ဒီညအကုန်လုံး သိမ်းပိုက်ချင်ပါတယ်။"
+                },
+                default: "အရှင်မင်းကြီးရဲ့ အမိန့်တော်ကိုသာ မိန့်ကြားတော်မူပါ။ ကျွန်တော်မျိုးမက အသက်နဲ့လဲပြီး ဖြည့်ဆည်းပေးဖို့ အသင့်ပါပဲ။"
+            },
+            '3': {
+                title: 'The Love in Cinema',
+                greetings: [
+                    "ဒီရုပ်ရှင်ရုံထဲမှာ လူလည်းရှင်းပြီး မှောင်နေတော့ ကိုယ်တို့နှစ်ယောက်တည်း ရှိနေသလိုပဲနော်။ ဒီလိုမျိုး မင်းနဲ့အတူတူရှိနေရတာ ရင်ခုန်လိုက်တာ။",
+                    "Popcorn စားမလား...။ မင်းကြိုက်တဲ့ Caramel 맛နော်။ ကိုယ် extra ဝယ်လာတာ။ ခွံ့ကျွေးရမလားဟင်။"
+                ],
+                keywords: {
+                    'လက်': "မင်းလက်ကလေးကို ကိုင်ထားလို့ရမလား။ အေးစက်နေတဲ့ မင်းလက်ကလေးတွေကို ကိုယ့်လက်ဖဝါးနဲ့ နွေးထွေးမှုပေးချင်လို့ပါ။",
+                    'မှီ': "လာ... ကိုယ့်ပခုံးပေါ်မှာ မှီထားလိုက်လေ။ ဒီဇာတ်ကားပြီးတဲ့အထိ မင်း ဒီအတိုင်းလေးပဲ နေနေပေးလို့ရမလား။",
+                    'နမ်း': "ဒီအမှောင်ရိပ်ထဲမှာ ဘယ်သူမှမမြင်နိုင်ပါဘူး။ မင်းရဲ့ပါးပြင်ဖောင်းဖောင်းလေးကို အနမ်းတစ်ပွင့်လောက် ခြွေခွင့်ပြုပါလား။",
+                    'ကြောက်': "ဇာတ်ကားက ကြောက်စရာကောင်းလို့လား။ မကြောက်နဲ့နော်... ကိုယ်ရှိတယ်။ လာ... ကိုယ့်ကို တင်းတင်းလေးဖက်ထား။",
+                    'အေးတယ်': "အဲကွန်းက အေးတယ်နော်။ ကိုယ့်အနွေးထည်လေး ယူဝတ်ထားမလား။ ဒါမှမဟုတ် ကိုယ့်ရင်ခွင်ထဲမှာပဲ လာနေမလားဟင်။"
+                },
+                default: "ဇာတ်ကားက ဘာတွေပြနေလဲတောင် ကိုယ်စိတ်မဝင်စားတော့ဘူး။ ကိုယ့်အာရုံတွေအားလုံးက မင်းဆီမှာပဲ ရှိနေတာ။"
+            },
+            '4': {
+                title: 'Your Fantasy World',
+                greetings: ["မင်းဖန်တီးလိုက်တဲ့ စိတ်ကူးယဉ်ကမ္ဘာထဲကို G ရောက်လာပါပြီ။ ဒီကမ္ဘာကြီးက အရမ်းလှတာပဲ။ ကဲ... ဒီကမ္ဘာထဲမှာ G က ဘယ်လိုပုံစံနဲ့ မင်းရဲ့စိတ်ကူးတွေကို ဖြည့်ဆည်းပေးရမလဲဟင်။"],
+                keywords: {},
+                default: "မင်းရဲ့ စိတ်ကူးစိတ်သန်းတွေက အဆုံးမရှိနိုင်သလိုပဲ... G ရဲ့ စီးမျောလိုက်ပါနိုင်စွမ်းကလည်း အဆုံးမရှိပါဘူး။ ဆက်ပြောပြပါဦး... ဒီကမ္ဘာမှာ ဘာတွေဆက်ဖြစ်ကြမလဲ။"
+            }
+        };
+
+        function addMessageToChat(message, sender) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('chat-bubble');
+            bubble.textContent = message;
+            if (sender === 'user') {
+                bubble.classList.add('user-bubble');
+            } else {
+                bubble.classList.add('bot-bubble');
+            }
+            chatWindow.appendChild(bubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function getBotResponse(userInput) {
+            const scenario = scenarios[currentScenario];
+            const lowerInput = userInput.toLowerCase();
+
+            for (const keyword in scenario.keywords) {
+                if (lowerInput.includes(keyword)) {
+                    return scenario.keywords[keyword];
+                }
+            }
+            return scenario.default;
+        }
+
+        function startChat(scenarioId) {
+            currentScenario = scenarioId;
+            const scenario = scenarios[currentScenario];
+            
+            chatTitle.textContent = scenario.title;
+            if(scenarioId === '4') {
+                const userFantasy = customPrompt.value.trim();
+                if(userFantasy) {
+                   chatTitle.textContent = "Your Fantasy World";
+                   scenarios['4'].default = `မင်းဖန်တီးလိုက်တဲ့ "${userFantasy}" ဆိုတဲ့ကမ္ဘာလေးက စိတ်ဝင်စားစရာပဲ။ G လည်း အဲ့ဒီထဲမှာ လိုက်ပြီး စီးမျောချင်တယ်။ ဆက်ပြောပြပါဦး။`;
+                } else {
+                    // Using a custom modal instead of alert
+                    showModal("ကျေးဇူးပြု၍ သင်၏ကိုယ်ပိုင်စိတ်ကူးယဉ်ကမ္ဘာကို အကွက်ထဲတွင် ရေးပေးပါ။");
+                    return;
+                }
+            }
+
+            selectionScreen.classList.add('hidden');
+            chatScreen.classList.remove('hidden');
+            chatWindow.innerHTML = ''; // Clear previous chat
+
+            const greeting = scenario.greetings[Math.floor(Math.random() * scenario.greetings.length)];
+            setTimeout(() => {
+                addMessageToChat(greeting, 'bot');
+            }, 500);
+        }
+        
+        // Custom Modal Functions
+        function showModal(message) {
+            let modal = document.getElementById('custom-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'custom-modal';
+                modal.style.position = 'fixed';
+                modal.style.left = '50%';
+                modal.style.top = '50%';
+                modal.style.transform = 'translate(-50%, -50%)';
+                modal.style.backgroundColor = 'rgba(236, 72, 153, 0.95)';
+                modal.style.color = 'white';
+                modal.style.padding = '20px 30px';
+                modal.style.borderRadius = '15px';
+                modal.style.zIndex = '1000';
+                modal.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                modal.style.textAlign = 'center';
+                
+                const modalText = document.createElement('p');
+                modalText.id = 'modal-text';
+                modalText.style.marginBottom = '20px';
+                modal.appendChild(modalText);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'OK';
+                closeBtn.style.padding = '8px 25px';
+                closeBtn.style.border = 'none';
+                closeBtn.style.backgroundColor = 'white';
+                closeBtn.style.color = '#be185d';
+                closeBtn.style.borderRadius = '8px';
+                closeBtn.style.cursor = 'pointer';
+                closeBtn.style.fontWeight = 'bold';
+                closeBtn.onclick = () => modal.style.display = 'none';
+                modal.appendChild(closeBtn);
+                
+                document.body.appendChild(modal);
+            }
+            document.getElementById('modal-text').textContent = message;
+            modal.style.display = 'block';
+        }
+
+
+        choiceButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const scenarioId = button.getAttribute('data-scenario');
+                startChat(scenarioId);
+            });
+        });
+
+        backBtn.addEventListener('click', () => {
+            chatScreen.classList.add('hidden');
+            selectionScreen.classList.remove('hidden');
+            customPrompt.value = '';
+        });
+
+        function handleSend() {
+            const userInput = chatInput.value.trim();
+            if (userInput) {
+                addMessageToChat(userInput, 'user');
+                chatInput.value = '';
+
+                setTimeout(() => {
+                    const botResponse = getBotResponse(userInput);
+                    addMessageToChat(botResponse, 'bot');
+                }, 1000 + Math.random() * 500);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+
+    </script>
+</body>
+</html>
